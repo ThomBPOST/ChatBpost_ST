@@ -113,7 +113,8 @@ with st.sidebar:
             # Vider la liste des messages
             msgs.messages.clear()
 
-
+        if len(msgs.messages) == 0:
+            msgs.add_ai_message("AI : Hello !")
 
 
         for msg in msgs.messages:
@@ -135,7 +136,7 @@ with st.sidebar:
 
         if prompt := st.chat_input():
             # Perform context retrieval separately without altering the original prompt
-            context_retrieval = retriever.vectorstore.similarity_search(prompt, k = 2)
+            context_retrieval = retriever.vectorstore.similarity_search(prompt, k = 1)
             st.session_state['context_retrieval'].append(context_retrieval)  # Stocker le chunk que le retrieval est parti cherché 
             # Log the human message as it is
             st.chat_message("human").write(prompt)
@@ -305,8 +306,7 @@ def save_content_to_markdown(content, directory="record_message", filename=None)
 
 
 
-if len(msgs.messages) == 0:
-    msgs.add_ai_message("AI : Hello !")
+
 
 
 
