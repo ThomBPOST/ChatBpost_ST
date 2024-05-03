@@ -115,73 +115,75 @@ with st.sidebar:
 
             retriever = vector_store.as_retriever()
 
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
+
 
         
 
-        chain = prompt | llm
+            chain = prompt | llm
 
 
-        chain_with_history = RunnableWithMessageHistory(
-        chain,
-        lambda session_id: msgs,  # Always return the instance created earlier
-        input_messages_key="question",
-        history_messages_key="history",
-        )
+            chain_with_history = RunnableWithMessageHistory(
+            chain,
+            lambda session_id: msgs,  # Always return the instance created earlier
+            input_messages_key="question",
+            history_messages_key="history",
+            )
 
-        
-        if len(msgs.messages) >= 500:
-            # Vider la liste des messages
-            msgs.messages.clear()
+            
+            if len(msgs.messages) >= 500:
+                # Vider la liste des messages
+                msgs.messages.clear()
 
-        if len(msgs.messages) == 0:
-            msgs.add_ai_message("AI : Hello !")
+            if len(msgs.messages) == 0:
+                msgs.add_ai_message("AI : Hello !")
 
 
-        for msg in msgs.messages:
-            # Split and display only the part before "[Document(page_content..."
-            if msg.type == "human":
-                # Find the index where "[Document(page_content..." starts
-                doc_start_index = msg.content.find("[Document(page_content")
-                # If the substring is found, split the content and display only the part before it
-                if doc_start_index != -1:
-                    content_parts = msg.content.split("[Document(page_content", 1)
-                    content_to_display = content_parts[0]
+            for msg in msgs.messages:
+                # Split and display only the part before "[Document(page_content..."
+                if msg.type == "human":
+                    # Find the index where "[Document(page_content..." starts
+                    doc_start_index = msg.content.find("[Document(page_content")
+                    # If the substring is found, split the content and display only the part before it
+                    if doc_start_index != -1:
+                        content_parts = msg.content.split("[Document(page_content", 1)
+                        content_to_display = content_parts[0]
+                    else:
+                        content_to_display = msg.content
+                    st.chat_message(msg.type).write(content_to_display)
                 else:
-                    content_to_display = msg.content
-                st.chat_message(msg.type).write(content_to_display)
-            else:
-                st.chat_message(msg.type).write(msg.content)
+                    st.chat_message(msg.type).write(msg.content)
 
 
 
-        if prompt := st.chat_input():
-            # Perform context retrieval separately without altering the original prompt
-            context_retrieval = retriever.vectorstore.similarity_search(prompt, k = 1)
-            st.session_state['context_retrieval'].append(context_retrieval)  # Stocker le chunk que le retrieval est parti cherché 
-            # Log the human message as it is
-            st.chat_message("human").write(prompt)
-            config = {"configurable": {"session_id": "any"}}
-            # Invoke the chain with the original prompt and handle context_retrieval separately as needed
-            every_context = prompt + str(context_retrieval)
-            response = chain_with_history.invoke({"question": every_context}, config)  # context_retrieval handled internally if necessary
-            st.chat_message("ai").write(response)
+            if prompt := st.chat_input():
+                # Perform context retrieval separately without altering the original prompt
+                context_retrieval = retriever.vectorstore.similarity_search(prompt, k = 1)
+                st.session_state['context_retrieval'].append(context_retrieval)  # Stocker le chunk que le retrieval est parti cherché 
+                # Log the human message as it is
+                st.chat_message("human").write(prompt)
+                config = {"configurable": {"session_id": "any"}}
+                # Invoke the chain with the original prompt and handle context_retrieval separately as needed
+                every_context = prompt + str(context_retrieval)
+                response = chain_with_history.invoke({"question": every_context}, config)  # context_retrieval handled internally if necessary
+                st.chat_message("ai").write(response)
 
 
-        cleaned_messages = []
-        for msg in msgs.messages:
-            # Trouver l'indice où "[Document(page_content" commence et le supprimer
-            doc_start_index = msg.content.find("[Document(page_content")
-            if doc_start_index != -1:
-                # Supprimer le contenu après l'indice trouvé
-                msg.content = msg.content[:doc_start_index]
+            cleaned_messages = []
+            for msg in msgs.messages:
+                # Trouver l'indice où "[Document(page_content" commence et le supprimer
+                doc_start_index = msg.content.find("[Document(page_content")
+                if doc_start_index != -1:
+                    # Supprimer le contenu après l'indice trouvé
+                    msg.content = msg.content[:doc_start_index]
 
-            if msg.content.strip():  # Cette vérification s'assure que le contenu n'est pas uniquement composé d'espaces
-                
-                cleaned_messages.append(msg)
+                if msg.content.strip():  # Cette vérification s'assure que le contenu n'est pas uniquement composé d'espaces
+                    
+                    cleaned_messages.append(msg)
 
-        st.session_state['chat_message_history'] = msgs.messages
+            st.session_state['chat_message_history'] = msgs.messages
+
+            except Exception as e:
+            st.error(f"An error occurred: {e}")
 
 
 
