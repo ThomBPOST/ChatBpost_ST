@@ -60,7 +60,7 @@ preprompt =(
 
 
 
-st.title("chatbot election")
+
 
 st.image("logo.png", width=200)
 
