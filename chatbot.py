@@ -78,7 +78,7 @@ show_debug_info(debug_button, msgs)
 #interface streamlit online 
 
 with st.sidebar:
-    openai_api_key = st.text_input("OpenAI API Key", key="openai_api_key", type="password")
+    openai_api_key_input = st.text_input("OpenAI API Key", key="openai_api_key", type="password")
     st.write("Put your OpenAI key. Do not share it!") 
 
     if openai_api_key_input:
