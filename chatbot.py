@@ -78,15 +78,23 @@ show_debug_info(debug_button, msgs)
 #interface streamlit online 
 
 with st.sidebar:
+    # Demander la clé API à l'utilisateur
     openai_api_key_input = st.text_input("OpenAI API Key", key="openai_api_key", type="password")
-    st.write("Put your OpenAI key. Do not share it!") 
+    st.write("Put your OpenAI key. Do not share it!")  # Rappel de sécurité
 
+    # Stocker la clé API dans session_state si elle est saisie
     if openai_api_key_input:
         st.session_state['openai_api_key'] = openai_api_key_input
+
+    # Vérifier si la clé API est stockée dans session_state avant de créer les instances
     if 'openai_api_key' in st.session_state:
-        embeddings = OpenAIEmbeddings(openai_api_key=st.session_state['openai_api_key'])
-        llm = OpenAI(temperature=0.3, max_tokens=400, OPENAI_API_KEY=st.session_state['openai_api_key'])
-        st.write("Put your OpenAI key. Do not share it!") 
+        try:
+            # Création des instances en utilisant la clé API stockée
+            embeddings = OpenAIEmbeddings(openai_api_key=st.session_state['openai_api_key'])
+            llm = OpenAI(temperature=0.3, max_tokens=400, openai_api_key=st.session_state['openai_api_key'])
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+        
 
         supabase_url = st.secrets["SUPABASE_URL"]
         supabase_service_key = st.secrets["SUPABASE_SERVICEKEY"]
