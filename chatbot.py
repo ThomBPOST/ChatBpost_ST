@@ -41,36 +41,10 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.messages import BaseMessage
 
 
-# fichier de traduction : 
-from translation import get_translation
-
-# Debug Tool 
-
-# from debug_tool import show_debug_info
 
 
 
-# debug_button = st.sidebar.toggle(label = "Debug", value = False)
-
-# show_debug_info(debug_button, msgs)
-
-
-# Charger les variables d'environnement
-# load_dotenv(override=True)
-
-# openai_api_key = os.getenv('OPENAI_API_KEY')
-# supabase_url = os.getenv('SUPABASE_URL')
-# supabase_service_key = os.getenv('SUPABASE_SERVICE_KEY')
-# mistral_api_key = os.getenv('MISTRAL_API_KEY')
-
-
-
-
-# embeddings = OpenAIEmbeddings()
-
-# chatMistral = ChatMistralAI(mistral_api_key=mistral_api_key)
-
-prompt =(
+preprompt =(
         "Tu es un assistant pour les team leaders chez bpost pendant la période des élections. "
         "Réponds à la question de l'utilisateur en utilisant les informations qui te sont fournies. "
         "Si tu ne trouves pas les informations, dites-le à l'utilisateur et que tu es là pour répondre aux questions "
@@ -124,12 +98,7 @@ if activated:
 
     retriever = vector_store.as_retriever()
 
-
-
-
-
     chain = prompt | llm
-
 
     chain_with_history = RunnableWithMessageHistory(
     chain,
