@@ -98,6 +98,15 @@ if activated:
 
     retriever = vector_store.as_retriever()
 
+    prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system",preprompt),
+        MessagesPlaceholder(variable_name="history"), 
+        ("human", "{question}"),
+
+    ]
+    )
+
     chain = prompt | llm
 
     chain_with_history = RunnableWithMessageHistory(
