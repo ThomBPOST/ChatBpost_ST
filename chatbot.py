@@ -62,7 +62,7 @@ preprompt =(
 
 
 
-st.image("logo.png", width=200)
+st.image("logo.jpg", width=200)
 
 
 
