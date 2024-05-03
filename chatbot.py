@@ -80,9 +80,12 @@ show_debug_info(debug_button, msgs)
 with st.sidebar:
     openai_api_key = st.text_input("OpenAI API Key", key="openai_api_key", type="password")
     st.write("Put your OpenAI key. Do not share it!") 
-    if openai_api_key:
-        embeddings = OpenAIEmbeddings(openai_api_key = openai_api_key)
-        llm = OpenAI(temperature=0.3, max_tokens= 400, OPENAI_API_KEY = openai_api_key)
+
+    if openai_api_key_input:
+        st.session_state['openai_api_key'] = openai_api_key_input
+    if 'openai_api_key' in st.session_state:
+        embeddings = OpenAIEmbeddings(openai_api_key=st.session_state['openai_api_key'])
+        llm = OpenAI(temperature=0.3, max_tokens=400, OPENAI_API_KEY=st.session_state['openai_api_key'])
         st.write("Put your OpenAI key. Do not share it!") 
 
         supabase_url = st.secrets["SUPABASE_URL"]
