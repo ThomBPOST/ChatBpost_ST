@@ -86,6 +86,10 @@ prompt =(
 
 
 
+
+openai_api_key = ""
+
+
 with st.sidebar:
     # Demander la clé API à l'utilisateur
     openai_api_key_input = st.text_input("OpenAI API Key", key="openai_api_key", type="password")
