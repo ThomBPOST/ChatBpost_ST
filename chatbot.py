@@ -91,11 +91,8 @@ with st.sidebar:
     openai_api_key_input = st.text_input("OpenAI API Key", key="openai_api_key", type="password")
     st.write("Put your OpenAI key. Do not share it!")  # Rappel de sécurité
 
-    # Button to update the API key
-    update_key = st.button("Update API Key")
-
-    # Store the API key in session_state if button pressed and input is not empty
-    if update_key and openai_api_key_input:
+    # Stocker la clé API dans session_state si elle est saisie
+    if openai_api_key_input:
         st.session_state['openai_api_key'] = openai_api_key_input
 
     if 'openai_api_key' in st.session_state:
