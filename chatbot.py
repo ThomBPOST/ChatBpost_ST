@@ -77,28 +77,31 @@ show_debug_info(debug_button, msgs)
 
 #interface streamlit online 
 
+def create_openai_instance(api_key):
+    """ Crée et retourne une instance de OpenAI configurée avec la clé API donnée. """
+    if api_key:
+        embeddings = OpenAIEmbeddings()
+        llm = OpenAI(temperature=0.3, max_tokens=400, OPENAI_API_KEY=api_key)
+        return llm
+    return None
+
 with st.sidebar:
     openai_api_key = st.text_input("OpenAI API Key", key="openai_api_key", type="password")
     st.write("Put your OpenAI key. Do not share it!") 
-    if openai_api_key:
-        embeddings = OpenAIEmbeddings()
-        llm = OpenAI(temperature=0.3, max_tokens= 400, OPENAI_API_KEY = openai_api_key)
-        st.write("Put your OpenAI key. Do not share it!") 
+    llm = create_openai_instance(openai_api_key)  # Appelle la fonction pour créer llm
 
+    if llm:  # Vérifie si llm a été correctement créé
         supabase_url = st.secrets["SUPABASE_URL"]
         supabase_service_key = st.secrets["SUPABASE_SERVICEKEY"]
+        supabase = create_client(supabase_url, supabase_service_key)
 
-        supabase: Client = create_client(supabase_url, supabase_service_key)
         vector_store = SupabaseVectorStore(
-        embedding=embeddings,
-        client=supabase,
-        table_name="documents",
-        query_name="match_documents",
-)
-
+            embedding=embeddings,
+            client=supabase,
+            table_name="documents",
+            query_name="match_documents",
+        )
         retriever = vector_store.as_retriever()
-
-
 
 
 
@@ -202,21 +205,21 @@ st.image("logo.png", width=200)
 if 'modelmemory' not in st.session_state:
     st.session_state['modelmemory'] = []
 
-modelbutton = st.sidebar.selectbox(strings["select_model"],
-    ("gpt-3.5-turbo", "Mistral 7B"),
-)
+# modelbutton = st.sidebar.selectbox(strings["select_model"],
+#     ("gpt-3.5-turbo", "Mistral 7B"),
+# )
 
 # if modelbutton not in st.session_state['modelmemory']:
 #     st.session_state['modelmemory'].append(modelbutton)
 
-temperature = st.sidebar.slider(
-    label="select temperature", min_value=0.1, max_value=0.8, value=0.3, step=0.1
-)
+# temperature = st.sidebar.slider(
+#     label="select temperature", min_value=0.1, max_value=0.8, value=0.3, step=0.1
+# )
 
-if 'temperaturememory' not in st.session_state:
-    st.session_state['temperaturememory'] = []
+# if 'temperaturememory' not in st.session_state:
+#     st.session_state['temperaturememory'] = []
 
-st.session_state['temperaturememory'].append(temperature)
+# st.session_state['temperaturememory'].append(temperature)
 
 # if modelbutton == "gpt-3.5-turbo":
 #     llm = OpenAI(temperature=temperature, max_tokens=400, api_key=openai_api_key)
