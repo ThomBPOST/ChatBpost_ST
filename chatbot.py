@@ -46,13 +46,13 @@ from translation import get_translation
 
 # Debug Tool 
 
-from debug_tool import show_debug_info
+# from debug_tool import show_debug_info
 
-msgs = StreamlitChatMessageHistory(key = 'chat_message_history')
 
-debug_button = st.sidebar.toggle(label = "Debug", value = False)
 
-show_debug_info(debug_button, msgs)
+# debug_button = st.sidebar.toggle(label = "Debug", value = False)
+
+# show_debug_info(debug_button, msgs)
 
 
 # Charger les variables d'environnement
@@ -87,23 +87,23 @@ prompt =(
 
 
 
-openai_api_key = ""
+
 
 
 with st.sidebar:
     # Demander la clé API à l'utilisateur
-    openai_api_key_input = st.text_input("OpenAI API Key", key="openai_api_key", type="password")
+    openai_api_key_input = st.text_input("OpenAI API Key", key="input_openai_api_key", type="password")
     st.write("Put your OpenAI key. Do not share it!")  # Rappel de sécurité
 
     # Stocker la clé API dans session_state si elle est saisie
     if openai_api_key_input:
         openai_api_key = openai_api_key_input
-
-    if 'openai_api_key' in st.session_state:
+        
         try:
             # Création des instances en utilisant la clé API stockée
+            msgs = StreamlitChatMessageHistory(key = 'chat_message_history')
             embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
-            llm = OpenAI(temperature=0.3, max_tokens=400, openai_api_key=st.session_state['openai_api_key'])
+            llm = OpenAI(temperature=0.3, max_tokens=400, openai_api_key=st.session_state['input_openai_api_key'])
 
             # Vos autres initialisations dépendantes de la clé API
             supabase_url = st.secrets["SUPABASE_URL"]
