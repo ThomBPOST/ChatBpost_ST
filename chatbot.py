@@ -46,7 +46,7 @@ from translation import get_translation
 
 # Debug Tool 
 
-from debug_tool import sho>w_debug_info
+from debug_tool import show_debug_info
 
 msgs = StreamlitChatMessageHistory(key = 'chat_message_history')
 
