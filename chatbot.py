@@ -86,26 +86,25 @@ with st.sidebar:
     if openai_api_key_input:
         st.session_state['openai_api_key'] = openai_api_key_input
 
-    # Vérifier si la clé API est stockée dans session_state avant de créer les instances
     if 'openai_api_key' in st.session_state:
         try:
             # Création des instances en utilisant la clé API stockée
             embeddings = OpenAIEmbeddings(openai_api_key=st.session_state['openai_api_key'])
             llm = OpenAI(temperature=0.3, max_tokens=400, openai_api_key=st.session_state['openai_api_key'])
+
+            # Vos autres initialisations dépendantes de la clé API
+            supabase_url = st.secrets["SUPABASE_URL"]
+            supabase_service_key = st.secrets["SUPABASE_SERVICEKEY"]
+            supabase = create_client(supabase_url, supabase_service_key)
+
+            vector_store = SupabaseVectorStore(
+                embedding=embeddings,
+                client=supabase,
+                table_name="documents",
+                query_name="match_documents",
+            )
         except Exception as e:
             st.error(f"An error occurred: {e}")
-        
-
-        supabase_url = st.secrets["SUPABASE_URL"]
-        supabase_service_key = st.secrets["SUPABASE_SERVICEKEY"]
-
-        supabase: Client = create_client(supabase_url, supabase_service_key)
-        vector_store = SupabaseVectorStore(
-        embedding=embeddings,
-        client=supabase,
-        table_name="documents",
-        query_name="match_documents",
-        )
 
         retriever = vector_store.as_retriever()
 
