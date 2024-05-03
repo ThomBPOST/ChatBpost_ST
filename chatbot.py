@@ -86,7 +86,7 @@ prompt =(
 
 
 
-st.title(strings["chatbot election"])
+st.title("chatbot election")
 
 st.image("logo.png", width=200)
 
