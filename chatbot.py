@@ -81,6 +81,7 @@ with st.sidebar:
     openai_api_key = st.text_input("OpenAI API Key", key="openai_api_key", type="password")
     st.write("Put your OpenAI key. Do not share it!") 
     if openai_api_key:
+        embeddings = OpenAIEmbeddings()
         llm = OpenAI(temperature=0.3, max_tokens= 400, OPENAI_API_KEY = openai_api_key)
         st.write("Put your OpenAI key. Do not share it!") 
 
