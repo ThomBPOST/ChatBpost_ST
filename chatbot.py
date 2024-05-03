@@ -86,7 +86,9 @@ prompt =(
 
 
 
+st.title(strings["chatbot election"])
 
+st.image("logo.png", width=200)
 
 
 
@@ -98,240 +100,118 @@ with st.sidebar:
     # Stocker la clé API dans session_state si elle est saisie
     if openai_api_key_input:
         openai_api_key = openai_api_key_input
+        activated = True
+    else:
+        activated = False
         
-        try:
-            # Création des instances en utilisant la clé API stockée
-            msgs = StreamlitChatMessageHistory(key = 'chat_message_history')
-            embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
-            llm = OpenAI(temperature=0.3, max_tokens=400, openai_api_key=st.session_state['input_openai_api_key'])
+if activated:
+    # Création des instances en utilisant la clé API stockée
+    msgs = StreamlitChatMessageHistory(key = 'chat_message_history')
+    embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
+    llm = OpenAI(temperature=0.3, max_tokens=400, openai_api_key=openai_api_key)
 
-            # Vos autres initialisations dépendantes de la clé API
-            supabase_url = st.secrets["SUPABASE_URL"]
-            supabase_service_key = st.secrets["SUPABASE_SERVICEKEY"]
-            supabase = create_client(supabase_url, supabase_service_key)
+    # Vos autres initialisations dépendantes de la clé API
+    supabase_url = st.secrets["SUPABASE_URL"]
+    supabase_service_key = st.secrets["SUPABASE_SERVICEKEY"]
+    supabase = create_client(supabase_url, supabase_service_key)
 
-            vector_store = SupabaseVectorStore(
-                embedding=embeddings,
-                client=supabase,
-                table_name="documents",
-                query_name="match_documents",
-            )
+    vector_store = SupabaseVectorStore(
+        embedding=embeddings,
+        client=supabase,
+        table_name="documents",
+        query_name="match_documents",
+    )
 
-            retriever = vector_store.as_retriever()
-
-
-
-        
-
-            chain = prompt | llm
-
-
-            chain_with_history = RunnableWithMessageHistory(
-            chain,
-            lambda session_id: msgs,  # Always return the instance created earlier
-            input_messages_key="question",
-            history_messages_key="history",
-            )
-
-            if 'chat_message_history' not in st.session_state:
-                st.session_state['chat_message_history'] = []
+    retriever = vector_store.as_retriever()
 
 
 
 
 
-            prompt = ChatPromptTemplate.from_messages(
-                [
-                    ("system",preprompt()),
-                    MessagesPlaceholder(variable_name="history"), 
-                    ("human", "{question}"),
+    chain = prompt | llm
 
-                ]
-            )
 
-            #Petit snippet pour afficher le chunk sur lequel on travaille
-            if 'context_retrieval' not in st.session_state:
-                st.session_state['context_retrieval'] = []
+    chain_with_history = RunnableWithMessageHistory(
+    chain,
+    lambda session_id: msgs,  # Always return the instance created earlier
+    input_messages_key="question",
+    history_messages_key="history",
+    )
 
+    if 'chat_message_history' not in st.session_state:
+        st.session_state['chat_message_history'] = []
+
+
+
+
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system",preprompt()),
+            MessagesPlaceholder(variable_name="history"), 
+            ("human", "{question}"),
+
+        ]
+    )
+
+    #Petit snippet pour afficher le chunk sur lequel on travaille
+    if 'context_retrieval' not in st.session_state:
+        st.session_state['context_retrieval'] = []
+
+    
+    if len(msgs.messages) >= 500:
+        # Vider la liste des messages
+        msgs.messages.clear()
+
+    if len(msgs.messages) == 0:
+        msgs.add_ai_message("AI : Hello !")
+
+
+    for msg in msgs.messages:
+        # Split and display only the part before "[Document(page_content..."
+        if msg.type == "human":
+            # Find the index where "[Document(page_content..." starts
+            doc_start_index = msg.content.find("[Document(page_content")
+            # If the substring is found, split the content and display only the part before it
+            if doc_start_index != -1:
+                content_parts = msg.content.split("[Document(page_content", 1)
+                content_to_display = content_parts[0]
+            else:
+                content_to_display = msg.content
+            st.chat_message(msg.type).write(content_to_display)
+        else:
+            st.chat_message(msg.type).write(msg.content)
+
+
+
+    if prompt := st.chat_input():
+        # Perform context retrieval separately without altering the original prompt
+        context_retrieval = retriever.vectorstore.similarity_search(prompt, k = 1)
+        st.session_state['context_retrieval'].append(context_retrieval)  # Stocker le chunk que le retrieval est parti cherché 
+        # Log the human message as it is
+        st.chat_message("human").write(prompt)
+        config = {"configurable": {"session_id": "any"}}
+        # Invoke the chain with the original prompt and handle context_retrieval separately as needed
+        every_context = prompt + str(context_retrieval)
+        response = chain_with_history.invoke({"question": every_context}, config)  # context_retrieval handled internally if necessary
+        st.chat_message("ai").write(response)
+
+
+    cleaned_messages = []
+    for msg in msgs.messages:
+        # Trouver l'indice où "[Document(page_content" commence et le supprimer
+        doc_start_index = msg.content.find("[Document(page_content")
+        if doc_start_index != -1:
+            # Supprimer le contenu après l'indice trouvé
+            msg.content = msg.content[:doc_start_index]
+
+        if msg.content.strip():  # Cette vérification s'assure que le contenu n'est pas uniquement composé d'espaces
             
-            if len(msgs.messages) >= 500:
-                # Vider la liste des messages
-                msgs.messages.clear()
+            cleaned_messages.append(msg)
 
-            if len(msgs.messages) == 0:
-                msgs.add_ai_message("AI : Hello !")
-
-
-            for msg in msgs.messages:
-                # Split and display only the part before "[Document(page_content..."
-                if msg.type == "human":
-                    # Find the index where "[Document(page_content..." starts
-                    doc_start_index = msg.content.find("[Document(page_content")
-                    # If the substring is found, split the content and display only the part before it
-                    if doc_start_index != -1:
-                        content_parts = msg.content.split("[Document(page_content", 1)
-                        content_to_display = content_parts[0]
-                    else:
-                        content_to_display = msg.content
-                    st.chat_message(msg.type).write(content_to_display)
-                else:
-                    st.chat_message(msg.type).write(msg.content)
+    st.session_state['chat_message_history'] = msgs.messages
 
 
 
-            if prompt := st.chat_input():
-                # Perform context retrieval separately without altering the original prompt
-                context_retrieval = retriever.vectorstore.similarity_search(prompt, k = 1)
-                st.session_state['context_retrieval'].append(context_retrieval)  # Stocker le chunk que le retrieval est parti cherché 
-                # Log the human message as it is
-                st.chat_message("human").write(prompt)
-                config = {"configurable": {"session_id": "any"}}
-                # Invoke the chain with the original prompt and handle context_retrieval separately as needed
-                every_context = prompt + str(context_retrieval)
-                response = chain_with_history.invoke({"question": every_context}, config)  # context_retrieval handled internally if necessary
-                st.chat_message("ai").write(response)
-
-
-            cleaned_messages = []
-            for msg in msgs.messages:
-                # Trouver l'indice où "[Document(page_content" commence et le supprimer
-                doc_start_index = msg.content.find("[Document(page_content")
-                if doc_start_index != -1:
-                    # Supprimer le contenu après l'indice trouvé
-                    msg.content = msg.content[:doc_start_index]
-
-                if msg.content.strip():  # Cette vérification s'assure que le contenu n'est pas uniquement composé d'espaces
-                    
-                    cleaned_messages.append(msg)
-
-            st.session_state['chat_message_history'] = msgs.messages
-
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
-
-
-
-
-
-# Initialiser le vectorstore
-
-
-
-@st.cache_data
-def preprompt():
-    return (
-        "Tu es un assistant pour les team leaders chez bpost pendant la période des élections. "
-        "Réponds à la question de l'utilisateur en utilisant les informations qui te sont fournies. "
-        "Si tu ne trouves pas les informations, dites-le à l'utilisateur et que tu es là pour répondre aux questions "
-        "sur les process de bpost pour les élections en Belgique. Essaye de répondre un maximum sur base des documents "
-        "que je t'ai fourni et n'invente pas de nouveaux éléments. Répond toujours dans la langue de la question de l'utilisateur. "
-        "Lorsqu'on te pose une question sur un process, je veux que tu mettes TOUTES les étapes dans la réponse, avec les marches à suivre et les remarques importantes si il y en a, de manière structurée avec des retours à la lignes si il faut. "
-        "Quand on te demande la définition ou la signification d'un mot, répond d'un phrase courte et simple, et ou d'exemples. Donne juste la signification du mot."
-        " Si tu reçois un message qui n'a aucun sens, répond simplement : Je ne comprend pas votre question ." 
-        " Si le 'type': 'Lexique', alors répond de la manière la plus brève possible en restant proche de la définition du document."
-        " Si le 'type': 'SOP', alors répond en donnant les étapes du documents. Il faut que la personne comprennent toutes les étapes "
-        " Si le 'type': 'Text', je veux que tu répondes de la manière la plus brève possible en maximum 2 ou 3 phrases. "
-)
-
-
-
-
-#on instancie chatmessagehistory, la version de streamlit
-# lien vers chatmessagehistory : https://python.langchain.com/docs/modules/memory/chat_messages/
-# lien vers chatmessagehistory pour streamlit : https://python.langchain.com/docs/integrations/memory/streamlit_chat_message_history
-#lien vers session_state sur streamlit : https://docs.streamlit.io/develop/api-reference/caching-and-state/st.session_state
-
-#Si on run, ça ne marchera pas. Il faut impérativement lancer avec la commande streamlit run ...
-
-
-
-
-
-
-
-
-
-# if debug_button:
-
-#     #solution found on https://github.com/streamlit/streamlit/issues/5218
-
-#     st.markdown(
-#         """
-#        <style>
-#        [data-testid="stSidebar"][aria-expanded="true"]{
-#            min-width: 750px;
-#            max-width: 1000px;
-#        }
-#        """,
-#         unsafe_allow_html=True,
-#     )   
-
-#     def update_preprompt():
-#         st.session_state['preprompt'] = st.session_state.new_preprompt
-
-#     st.sidebar.text_area(label="Enter a new preprompt", value=st.session_state['preprompt'], key='new_preprompt', on_change=update_preprompt, height = 300)
-
-#     reset_button = st.sidebar.button(label = "Reset Conversation", key = st.session_state['chat_message_history'])
-
-#     if reset_button:
-#         msgs.messages = []
-
-
-
-
-
-
-
-langbutton = st.sidebar.selectbox(
-    "language :",
-    ("Français", "Nederlands", "English")
-)
-
-strings = get_translation(langbutton)
-
-st.title(strings["title"])
-st.image("logo.png", width=200)
-
-if 'modelmemory' not in st.session_state:
-    st.session_state['modelmemory'] = []
-
-# modelbutton = st.sidebar.selectbox(strings["select_model"],
-#     ("gpt-3.5-turbo", "Mistral 7B"),
-# )
-
-# if modelbutton not in st.session_state['modelmemory']:
-#     st.session_state['modelmemory'].append(modelbutton)
-
-# temperature = st.sidebar.slider(
-#     label="select temperature", min_value=0.1, max_value=0.8, value=0.3, step=0.1
-# )
-
-# if 'temperaturememory' not in st.session_state:
-#     st.session_state['temperaturememory'] = []
-
-# st.session_state['temperaturememory'].append(temperature)
-
-# if modelbutton == "gpt-3.5-turbo":
-#     llm = OpenAI(temperature=temperature, max_tokens=400, api_key=openai_api_key)
-# elif modelbutton == "Mistral 7B":
-#     llm = ChatMistralAI(temperature=temperature, mistral_api_key=mistral_api_key)
-
-
-import datetime
-
-
-def save_content_to_markdown(content, directory="record_message", filename=None):
-    if filename is None:
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        filename = f"messages_{current_time}.md"
-    
-
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    
-    full_path = os.path.join(directory, filename)
-    
-    with open(full_path, "w") as file:
-        file.write(content)
 
 
