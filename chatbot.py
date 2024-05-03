@@ -85,21 +85,25 @@ with st.sidebar:
         llm = OpenAI(temperature=0.3, max_tokens= 400, OPENAI_API_KEY = openai_api_key)
         st.write("Put your OpenAI key. Do not share it!") 
 
-supabase_url = st.secrets["SUPABASE_URL"]
-supabase_service_key = st.secrets["SUPABASE_SERVICEKEY"]
+        supabase_url = st.secrets["SUPABASE_URL"]
+        supabase_service_key = st.secrets["SUPABASE_SERVICEKEY"]
+
+        supabase: Client = create_client(supabase_url, supabase_service_key)
+        vector_store = SupabaseVectorStore(
+        embedding=embeddings,
+        client=supabase,
+        table_name="documents",
+        query_name="match_documents",
+)
+
+        retriever = vector_store.as_retriever()
+
+
 
 
 
 # Initialiser le vectorstore
-supabase: Client = create_client(supabase_url, supabase_service_key)
-vector_store = SupabaseVectorStore(
-    embedding=embeddings,
-    client=supabase,
-    table_name="documents",
-    query_name="match_documents",
-)
 
-retriever = vector_store.as_retriever()
 
 
 @st.cache_data
