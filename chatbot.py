@@ -93,12 +93,12 @@ with st.sidebar:
 
     # Stocker la clé API dans session_state si elle est saisie
     if openai_api_key_input:
-        st.session_state['openai_api_key'] = openai_api_key_input
+        openai_api_key = openai_api_key_input
 
     if 'openai_api_key' in st.session_state:
         try:
             # Création des instances en utilisant la clé API stockée
-            embeddings = OpenAIEmbeddings(openai_api_key=st.session_state['openai_api_key'])
+            embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
             llm = OpenAI(temperature=0.3, max_tokens=400, openai_api_key=st.session_state['openai_api_key'])
 
             # Vos autres initialisations dépendantes de la clé API
