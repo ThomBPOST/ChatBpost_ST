@@ -206,8 +206,8 @@ modelbutton = st.sidebar.selectbox(strings["select_model"],
     ("gpt-3.5-turbo", "Mistral 7B"),
 )
 
-if modelbutton not in st.session_state['modelmemory']:
-    st.session_state['modelmemory'].append(modelbutton)
+# if modelbutton not in st.session_state['modelmemory']:
+#     st.session_state['modelmemory'].append(modelbutton)
 
 temperature = st.sidebar.slider(
     label="select temperature", min_value=0.1, max_value=0.8, value=0.3, step=0.1
@@ -218,10 +218,10 @@ if 'temperaturememory' not in st.session_state:
 
 st.session_state['temperaturememory'].append(temperature)
 
-if modelbutton == "gpt-3.5-turbo":
-    llm = OpenAI(temperature=temperature, max_tokens=400, api_key=openai_api_key)
-elif modelbutton == "Mistral 7B":
-    llm = ChatMistralAI(temperature=temperature, mistral_api_key=mistral_api_key)
+# if modelbutton == "gpt-3.5-turbo":
+#     llm = OpenAI(temperature=temperature, max_tokens=400, api_key=openai_api_key)
+# elif modelbutton == "Mistral 7B":
+#     llm = ChatMistralAI(temperature=temperature, mistral_api_key=mistral_api_key)
 
 
 import datetime
