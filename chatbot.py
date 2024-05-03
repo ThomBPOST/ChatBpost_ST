@@ -103,10 +103,13 @@ with st.sidebar:
                 table_name="documents",
                 query_name="match_documents",
             )
+
+            retriever = vector_store.as_retriever()
+            
         except Exception as e:
             st.error(f"An error occurred: {e}")
 
-        retriever = vector_store.as_retriever()
+        
 
         chain = prompt | llm
 
