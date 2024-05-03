@@ -119,19 +119,6 @@ if activated:
     if 'chat_message_history' not in st.session_state:
         st.session_state['chat_message_history'] = []
 
-
-
-
-
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system",preprompt()),
-            MessagesPlaceholder(variable_name="history"), 
-            ("human", "{question}"),
-
-        ]
-    )
-
     #Petit snippet pour afficher le chunk sur lequel on travaille
     if 'context_retrieval' not in st.session_state:
         st.session_state['context_retrieval'] = []
