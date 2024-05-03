@@ -1,0 +1,14 @@
+#ignore venv and .env
+
+*.env
+
+chatbot_backup.py
+backup.py
+test_supabase_metadata.py
+test.py
+
+venv/
+test/
+notebooks/
+.streamlit/
+__pycache__/
