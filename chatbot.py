@@ -182,7 +182,7 @@ with st.sidebar:
 
             st.session_state['chat_message_history'] = msgs.messages
 
-            except Exception as e:
+        except Exception as e:
             st.error(f"An error occurred: {e}")
 
 
