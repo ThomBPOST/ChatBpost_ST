@@ -84,7 +84,8 @@ with st.sidebar:
         llm = OpenAI(temperature=0.3, max_tokens= 400, OPENAI_API_KEY = openai_api_key)
         st.write("Put your OpenAI key. Do not share it!") 
 
-
+supabase_url = st.secrets["SUPABASE_URL"]
+supabase_service_key = st.secrets["SUPABASE_SERVICEKEY"]
 
 
 
