@@ -66,19 +66,23 @@ show_debug_info(debug_button, msgs)
 
 
 
-
-embeddings = OpenAIEmbeddings()
+# embeddings = OpenAIEmbeddings()
 
 # chatMistral = ChatMistralAI(mistral_api_key=mistral_api_key)
 
-llm = OpenAI(temperature=0.3, max_tokens= 400)
+
+
+
 
 
 #interface streamlit online 
 
 with st.sidebar:
     openai_api_key = st.text_input("OpenAI API Key", key="openai_api_key", type="password")
-    "[Put your open ai key. Do not share it !"
+    st.write("Put your OpenAI key. Do not share it!") 
+    if openai_api_key:
+        llm = OpenAI(temperature=0.3, max_tokens= 400, OPENAI_API_KEY = openai_api_key)
+        st.write("Put your OpenAI key. Do not share it!") 
 
 
 
