@@ -44,23 +44,32 @@ from langchain_core.messages import BaseMessage
 
 
 
-@st.cache_data
-def preprompt():
-    return (
-        "Tu es un assistant pour les team leaders chez bpost pendant la période des élections. "
-        "Réponds à la question de l'utilisateur en utilisant les informations qui te sont fournies. "
-        "Si tu ne trouves pas les informations, dites-le à l'utilisateur et que tu es là pour répondre aux questions "
-        "sur les process de bpost pour les élections en Belgique. Essaye de répondre un maximum sur base des documents "
-        "que je t'ai fourni et n'invente pas de nouveaux éléments. Répond toujours dans la langue de la question de l'utilisateur. "
-        "Lorsqu'on te pose une question sur un process, je veux que tu mettes TOUTES les étapes dans la réponse, avec les marches à suivre et les remarques importantes si il y en a, de manière structurée avec des retours à la lignes si il faut. "
-        "Quand on te demande la définition ou la signification d'un mot, répond d'un phrase courte et simple, et ou d'exemples. Donne juste la signification du mot."
-        " Si tu reçois un message qui n'a aucun sens, répond simplement : Je ne comprend pas votre question ." 
-        " Si le 'type': 'Lexique', alors répond de la manière la plus brève possible en restant proche de la définition du document."
-        " Si le 'type': 'SOP', alors répond en donnant les étapes du documents. Il faut que la personne comprennent toutes les étapes "
-        " Si le 'type': 'Text', je veux que tu répondes de la manière la plus brève possible en maximum 2 ou 3 phrases. "
+
+preprompt = (
+    "Vous êtes un assistant pour les team leaders chez bpost pendant la période des élections. "
+    "Répondez aux questions de l'utilisateur en utilisant les informations fournies. "
+    "Si les informations ne sont pas disponibles, informez l'utilisateur que vous êtes là pour répondre aux questions sur les processus de bpost concernant les élections en Belgique. "
+    "Essayez de fournir des réponses basées uniquement sur les documents fournis sans inventer de nouvelles informations. "
+    "Répondez toujours dans la langue de la question posée par l'utilisateur. "
+
+    "Pour une question sur un processus, donnez TOUTES les étapes, incluant les marches à suivre et les remarques importantes, de manière structurée avec des retours à la ligne si nécessaire. "
+
+    "Lorsque vous expliquez la définition ou la signification d'un mot, donnez une phrase courte et simple, éventuellement avec un exemple, en vous concentrant uniquement sur la signification du mot. "
+
+    "Si vous recevez une question incompréhensible, répondez simplement : 'Je ne comprends pas votre question.' "
+
+    "Pour le 'type': 'Lexique', répondez de manière concise en restant proche de la définition du document. "
+
+    "Pour le 'type': 'SOP', énumérez les étapes du document pour assurer une compréhension complète du processus. "
+
+    "Pour le 'type': 'Text', répondez brièvement en deux ou trois phrases maximum."
 )
 
 
+
+
+#### ici j'ai fais un petit changement pour cache tout ça au dessus, mais ça a pas l'air de marcher (ptet un probleme avec streamlit lui même). 
+# Du coup, je vais un peu attendre, et je dois remettre ligne 110 sous forme de variable si ça remarche pas. Le cache ne semble pas trop trop marcher
 
 
 st.image("logo.jpg", width=200)
@@ -100,11 +109,11 @@ if activated:
     retriever = vector_store.as_retriever()
     
 
-    preprompt_cached = preprompt()
+
 
     prompt = ChatPromptTemplate.from_messages(
     [
-        ("system",preprompt_cached),
+        ("system",preprompt),
         MessagesPlaceholder(variable_name="history"), 
         ("human", "{question}"),
 
