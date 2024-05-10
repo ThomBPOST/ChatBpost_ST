@@ -97,8 +97,11 @@ if activated:
     )
 
     retriever = vector_store.as_retriever()
-    print(preprompt)
+    
+
     preprompt_cached = preprompt()
+
+    st.write(preprompt_cached)
 
     prompt = ChatPromptTemplate.from_messages(
     [
