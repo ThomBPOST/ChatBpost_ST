@@ -102,7 +102,7 @@ if activated:
 
     prompt = ChatPromptTemplate.from_messages(
     [
-        ("system",preprompt),
+        ("system",preprompt_cached),
         MessagesPlaceholder(variable_name="history"), 
         ("human", "{question}"),
 
