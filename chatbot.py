@@ -40,7 +40,7 @@ from langchain_core.runnables import RunnablePassthrough
 
 from langchain_core.messages import BaseMessage
 
-
+from preprompt import preprompt
 
 
 
@@ -97,7 +97,7 @@ if activated:
     )
 
     retriever = vector_store.as_retriever()
-
+    
     preprompt_cached = preprompt()
 
     prompt = ChatPromptTemplate.from_messages(
